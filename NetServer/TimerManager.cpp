@@ -193,7 +193,7 @@ void TimerManager::CheckTick()
     // steady_clock::time_point t1 = steady_clock::now();
     // steady_clock::time_point t2 = steady_clock::now();
     // duration<double> time_span;
-    int si = TimerManager::slotinterval;
+    //int si = TimerManager::slotinterval;
     struct timeval tv;
     gettimeofday(&tv, NULL);
     int oldtime = (tv.tv_sec % 10000) * 1000 + tv.tv_usec / 1000;
