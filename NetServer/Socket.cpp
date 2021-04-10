@@ -39,6 +39,7 @@ void Socket::SetSocketOption()
 void Socket::SetReuseAddr()
 {
     int on = 1;
+    //重用本地端口
     setsockopt(serverfd_, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 }
 

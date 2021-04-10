@@ -51,6 +51,7 @@ void Poller::poll(ChannelList &activechannellist)
     int timeout = TIMEOUT;
     //std::cout << "epoll_wait..." << std::endl;(int)eventlist_.capacity()
     int nfds = epoll_wait(pollfd_, &*eventlist_.begin(), (int)eventlist_.capacity(), timeout);
+    //&*eventlist_.begin()  相当于返回数组头
     //int nfds = epoll_wait(pollfd_, &*eventlist_.begin(), (int)channelmap_.size()*0.7+1, timeout);
     if(nfds == -1)
     {
@@ -64,13 +65,14 @@ void Poller::poll(ChannelList &activechannellist)
     {
         int events = eventlist_[i].events;
         //int fd = eventlist_[i].data.fd;
+        //把所有关心的内容都存放在ptr指针指向的Channel
         Channel *pchannel = (Channel*)eventlist_[i].data.ptr;
         int fd = pchannel->GetFd();
 
         std::map<int, Channel*>::const_iterator iter;
         {
             std::lock_guard <std::mutex> lock(mutex_);
-            iter = channelmap_.find(fd);
+            iter = channelmap_.find(fd);//std::map<int, Channel*> channelmap_;
         }        
         if(iter != channelmap_.end())
         {
@@ -85,7 +87,7 @@ void Poller::poll(ChannelList &activechannellist)
     if(nfds == (int)eventlist_.capacity())
     {
         std::cout << "resize:" << nfds << std::endl;
-        eventlist_.resize(nfds * 2);
+        eventlist_.resize(nfds * 2);//自动扩容
     }
     //eventlist_.clear();
 
