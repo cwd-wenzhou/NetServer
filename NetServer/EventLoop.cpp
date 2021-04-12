@@ -66,7 +66,7 @@ void EventLoop::loop()
     quit_ = false;
     while(!quit_)
     {
-        poller_.poll(activechannellist_);
+        poller_.poll(activechannellist_);//poll负责添加事件到activechannellist_
         //std::cout << "server HandleEvent" << std::endl;
         for(Channel *pchannel : activechannellist_)
         {            

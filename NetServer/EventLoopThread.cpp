@@ -46,7 +46,7 @@ void EventLoopThread::ThreadFunc()
     threadid_ = std::this_thread::get_id();
     std::stringstream sin;
     sin << threadid_;    
-    threadname_ += sin.str();
+    threadname_ += sin.str();//int值转换成string
 
     std::cout << "in the thread:" << threadname_ << std::endl;   
     try

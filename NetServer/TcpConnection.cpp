@@ -236,42 +236,42 @@ int recvn(int fd, std::string &bufferin)
     for(;;)
     {
         //nbyte = recv(fd, buffer, BUFSIZE, 0);
-		nbyte = read(fd, buffer, BUFSIZE);
+	nbyte = read(fd, buffer, BUFSIZE);
 		
     	if (nbyte > 0)
-		{
-            bufferin.append(buffer, nbyte);//效率较低，2次拷贝
-            readsum += nbyte;
+	{
+            	bufferin.append(buffer, nbyte);//效率较低，2次拷贝
+            	readsum += nbyte;
 			if(nbyte < BUFSIZE)
 				return readsum;//读优化，减小一次读调用，因为一次调用耗时10+us
 			else
 				continue;
-		}
-		else if (nbyte < 0)//异常
+	}
+	else if (nbyte < 0)//异常
+	{
+		if (errno == EAGAIN)//系统缓冲区未有数据，非阻塞返回
 		{
-			if (errno == EAGAIN)//系统缓冲区未有数据，非阻塞返回
-			{
-				//std::cout << "EAGAIN,系统缓冲区未有数据，非阻塞返回" << std::endl;
-				return readsum;
-			}
-			else if (errno == EINTR)
-			{
-				std::cout << "errno == EINTR" << std::endl;
-				continue;
-			}
-			else
-			{
-				//可能是RST
-				perror("recv error");
-				//std::cout << "recv error" << std::endl;
-				return -1;
-			}
+			//std::cout << "EAGAIN,系统缓冲区未有数据，非阻塞返回" << std::endl;
+			return readsum;
 		}
-		else//返回0，客户端关闭socket，FIN
+		else if (errno == EINTR)
 		{
-			//std::cout << "client close the Socket" << std::endl;
-			return 0;
+			std::cout << "errno == EINTR" << std::endl;
+			continue;
 		}
+		else
+		{
+			//可能是RST
+			perror("recv error");
+			//std::cout << "recv error" << std::endl;
+			return -1;
+		}
+	}
+	else//返回0，客户端关闭socket，FIN
+	{
+		//std::cout << "client close the Socket" << std::endl;
+		return 0;
+	}
     }
 }
 
