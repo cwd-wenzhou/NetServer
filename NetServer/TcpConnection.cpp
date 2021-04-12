@@ -21,7 +21,7 @@ TcpConnection::TcpConnection(EventLoop *loop, int fd, const struct sockaddr_in &
     : loop_(loop),
 	spchannel_(new Channel()),
 	fd_(fd),
-    clientaddr_(clientaddr),
+        clientaddr_(clientaddr),
 	halfclose_(false),
 	disconnected_(false),
 	asyncprocessing_(false),
@@ -31,6 +31,7 @@ TcpConnection::TcpConnection(EventLoop *loop, int fd, const struct sockaddr_in &
 	//注册事件执行函数
     spchannel_->SetFd(fd_);
     spchannel_->SetEvents(EPOLLIN | EPOLLET);
+    //使用bind绑定类成员函数需要绑定该类的this指针
     spchannel_->SetReadHandle(std::bind(&TcpConnection::HandleRead, this));
     spchannel_->SetWriteHandle(std::bind(&TcpConnection::HandleWrite, this));
     spchannel_->SetCloseHandle(std::bind(&TcpConnection::HandleClose, this));
@@ -51,9 +52,8 @@ void TcpConnection::AddChannelToLoop()
 	//https://blog.csdn.net/littlefang/article/details/37922113
 	//多线程下，加入loop的任务队列
 	//主线程直接执行
-    //loop_->AddChannelToPoller(pchannel_);
+        //loop_->AddChannelToPoller(pchannel_);
 	loop_->AddTask(std::bind(&EventLoop::AddChannelToPoller, loop_, spchannel_.get()));
-
 }
 
 void TcpConnection::Send(const std::string &s)
@@ -80,16 +80,16 @@ void TcpConnection::SendInLoop()
 	{	
 		return;
 	}
-    int result = sendn(fd_, bufferout_);
-    if(result > 0)
-    {
+	int result = sendn(fd_, bufferout_);
+	if(result > 0)
+	{
 		uint32_t events = spchannel_->GetEvents();
-        if(bufferout_.size() > 0)
-        {
+		if(bufferout_.size() > 0)
+		{
 			//缓冲区满了，数据没发完，就设置EPOLLOUT事件触发			
 			spchannel_->SetEvents(events | EPOLLOUT);
 			loop_->UpdateChannelToPoller(spchannel_.get());
-        }
+		}
 		else
 		{
 			//数据已发完
@@ -99,11 +99,11 @@ void TcpConnection::SendInLoop()
 			if(halfclose_)
 				HandleClose();
 		}
-    }
-    else if(result < 0)
-    {        
+	}
+	else if(result < 0)
+	{        
 		HandleError();
-    }
+	}
 	else
 	{
 		HandleClose();
@@ -278,7 +278,7 @@ int recvn(int fd, std::string &bufferin)
 int sendn(int fd, std::string &bufferout)
 {
 	ssize_t nbyte = 0;
-    int sendsum = 0;
+    	int sendsum = 0;
 	//char buffer[BUFSIZE+1];
 	size_t length = 0;
 	//length = bufferout.copy(buffer, BUFSIZE, 0);
@@ -301,10 +301,10 @@ int sendn(int fd, std::string &bufferout)
 	{
 		//nbyte = send(fd, buffer, length, 0);
 		//nbyte = send(fd, bufferout.c_str(), length, 0);
-		nbyte = write(fd, bufferout.c_str(), length);
+		nbyte = write(fd, bufferout.c_str(), length);//c_str在字符串最后添加文件终止符'\0'
 		if (nbyte > 0)
 		{
-            sendsum += nbyte;
+            		sendsum += nbyte;
 			bufferout.erase(0, nbyte);
 			//length = bufferout.copy(buffer, BUFSIZE, 0);
 			//buffer[length] = '\0';
@@ -327,6 +327,7 @@ int sendn(int fd, std::string &bufferout)
 			}
 			else if (errno == EINTR)
 			{
+				//遇见中断
 				std::cout << "write errno == EINTR" << std::endl;
 				continue;
 			}
