@@ -20,7 +20,7 @@ class TimerManager
 public: 
     typedef std::function<void()> CallBack;
 
-    //单例模式，懒汉
+    //单例模式，饿汉，避免多线程同步的问题
     static TimerManager* GetTimerManagerInstance(); 
 
     //添加定时任务

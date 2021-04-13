@@ -71,6 +71,8 @@ bool HttpSession::PraseHttpRequest(std::string &msg, HttpRequestContext &httpreq
     bool praseresult = false;
     //以下解析可以改成状态机，解决一次收Http报文不完整问题
 	//prase http request line
+    // std::string::npos     就是Maximum value for size_t
+    //拆出http报文的两两换行之间的内容，放到first_line，然后通过sstream转换格式
 	if ((next = msg.find(crlf, prev)) != std::string::npos)
 	{
 		std::string first_line(msg.substr(prev, next - prev));

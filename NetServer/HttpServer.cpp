@@ -49,10 +49,13 @@ void HttpServer::HandleMessage(const spTcpConnection& sptcpconn, std::string &ms
     std::shared_ptr<HttpSession> sphttpsession;
     spTimer sptimer;
     {
+        //取出该会话的时间管理器和HttpSession的智能指针
         std::lock_guard <std::mutex> lock(mutex_);
         sphttpsession = httpsessionnlist_[sptcpconn];
         sptimer = timerlist_[sptcpconn];
     }
+
+    //设置超时时间
     sptimer->Adjust(5000, Timer::TimerType::TIMER_ONCE, std::bind(&TcpConnection::Shutdown, sptcpconn));
     
     if(threadpool_.GetThreadNum() > 0)
@@ -90,18 +93,18 @@ void HttpServer::HandleMessage(const spTcpConnection& sptcpconn, std::string &ms
     {
         //没有开启业务线程池，业务计算直接在IO线程执行
         HttpRequestContext httprequestcontext;
-        std::string responsecontext;
+        std::string responsemsg;
         bool result = sphttpsession->PraseHttpRequest(msg, httprequestcontext);
         if(result == false)
         {
-            sphttpsession->HttpError(400, "Bad request", httprequestcontext, responsecontext); //请求报文解析错误，报400
-            sptcpconn->Send(responsecontext);
+            sphttpsession->HttpError(400, "Bad request", httprequestcontext, responsemsg); //请求报文解析错误，报400
+            sptcpconn->Send(responsemsg);
             return;
         }            
         
-        sphttpsession->HttpProcess(httprequestcontext, responsecontext);
+        sphttpsession->HttpProcess(httprequestcontext, responsemsg);
         
-        sptcpconn->Send(responsecontext);
+        sptcpconn->Send(responsemsg);
 
         if(!sphttpsession->KeepAlive())
         {

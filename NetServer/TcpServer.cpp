@@ -82,8 +82,6 @@ void TcpServer::OnNewConnection()
             std::lock_guard<std::mutex> lock(mutex_);
             tcpconnlist_[clientfd] = sptcpconnection;
         }
-        
-
         newconnectioncallback_(sptcpconnection);
         //Bug，应该把事件添加的操作放到最后,否则bug segement fault,导致HandleMessage中的phttpsession==NULL
         //总之就是做好一切准备工作再添加事件到epoll！！！
@@ -106,6 +104,7 @@ void TcpServer::OnConnectionError()
     serversocket_.Close();
 }
 
+//开启非阻塞式IO的典型代码
 void Setnonblocking(int fd)
 {
     int opts = fcntl(fd, F_GETFL);
